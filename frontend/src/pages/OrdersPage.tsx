@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { orderService } from '../services/orders';
 import { StatusBadge } from '../components/StatusBadge';
+import { Pagination } from '../components/Pagination';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import type { Order, OrderSortBy, OrderStatus, SortOrder } from '../types/order';
 
@@ -17,10 +18,14 @@ export const OrdersPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [sortPreset, setSortPreset] = useState<SortPreset>('newest');
 
-  // Pagination state (default page 1, size 10)
+  // Server-side pagination state (default 10 items per page)
   const [page, setPage] = useState<number>(1);
   const [pageSize] = useState<number>(10);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(0);
+
+  // Retry trigger for error recovery
+  const [retryCount, setRetryCount] = useState<number>(0);
 
   // 6B: Debounce customer search input by 300ms
   useEffect(() => {
@@ -34,7 +39,7 @@ export const OrdersPage: React.FC = () => {
     };
   }, [searchInput]);
 
-  // Fetch orders whenever search, status filter, sort preset, or page changes
+  // Fetch orders whenever search, status filter, sort preset, page, or retry triggers
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
@@ -68,6 +73,7 @@ export const OrdersPage: React.FC = () => {
         if (isMounted) {
           setOrders(data.items);
           setTotalCount(data.total);
+          setTotalPages(data.total_pages);
           setLoading(false);
         }
       })
@@ -81,7 +87,7 @@ export const OrdersPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [debouncedSearch, statusFilter, sortPreset, page, pageSize]);
+  }, [debouncedSearch, statusFilter, sortPreset, page, pageSize, retryCount]);
 
   // Handler for status filter change
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -102,6 +108,10 @@ export const OrdersPage: React.FC = () => {
     setStatusFilter('all');
     setSortPreset('newest');
     setPage(1);
+  };
+
+  const handleRetry = () => {
+    setRetryCount((prev) => prev + 1);
   };
 
   const isFiltered = debouncedSearch !== '' || statusFilter !== 'all' || sortPreset !== 'newest';
@@ -182,7 +192,16 @@ export const OrdersPage: React.FC = () => {
 
         {error && (
           <div className="state-box error-box">
-            <p>{error}</p>
+            <h3>Unable to load orders</h3>
+            <p className="error-desc">{error}</p>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              style={{ marginTop: '14px' }}
+              onClick={handleRetry}
+            >
+              Retry
+            </button>
           </div>
         )}
 
@@ -238,6 +257,15 @@ export const OrdersPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* 6E: Server-side Pagination Component */}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={totalCount}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
           </>
         )}
       </div>
