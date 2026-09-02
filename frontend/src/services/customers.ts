@@ -3,8 +3,8 @@ import type { Customer, CustomerList } from '../types/customer';
 import type { PaginatedOrders } from '../types/order';
 
 export const customerService = {
-  getCustomers(): Promise<CustomerList> {
-    return request<CustomerList>('/customers');
+  getCustomers(page: number = 1, pageSize: number = 10): Promise<CustomerList> {
+    return request<CustomerList>(`/customers?page=${page}&page_size=${pageSize}`);
   },
 
   getCustomer(customerId: number): Promise<Customer> {

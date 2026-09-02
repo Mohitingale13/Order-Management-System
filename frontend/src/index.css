@@ -515,3 +515,54 @@ body {
   font-size: 14px;
   margin-bottom: 4px;
 }
+/* Customer Details & Links */
+.customer-link {
+  color: var(--text-primary);
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s ease;
+}
+
+.customer-link:hover {
+  text-decoration: underline;
+  color: #000000;
+}
+
+.back-navigation {
+  margin-bottom: 16px;
+}
+
+.back-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.back-link:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.customer-email {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.text-sm {
+  font-size: 13px;
+}

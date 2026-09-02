@@ -10,8 +10,12 @@ router = APIRouter(prefix="/customers", tags=["Customers"])
 
 
 @router.get("", response_model=CustomerListResponse)
-def list_customers(db: Session = Depends(get_db)):
-    return CustomerService.get_customers(db=db)
+def list_customers(
+    page: int = Query(1, ge=1, description="Page number (minimum 1)"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page (between 1 and 100)"),
+    db: Session = Depends(get_db),
+):
+    return CustomerService.get_customers(db=db, page=page, page_size=page_size)
 
 
 @router.get("/{customer_id}", response_model=CustomerResponse)
