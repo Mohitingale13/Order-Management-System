@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 backend/.venv/
 __pycache__/
 *.py[cod]
@@ -6,6 +6,7 @@ __pycache__/
 # Environment
 .env
 backend/.env
+frontend/.env
 
 # Node
 frontend/node_modules/

@@ -66,3 +66,15 @@ The API requires page numbers to be at least 1 and limits page size to 100 to pr
 
 ## Empty Results
 A valid query that produces no records returns a successful HTTP 200 response with an empty result set (`total: 0`, `total_pages: 0`) rather than an error or 404 response.
+
+## Frontend API Client (Phase 5)
+API communication is separated into dedicated service modules (`services/orders.ts`, `services/customers.ts`, `services/dashboard.ts`) rather than executing `fetch()` calls directly inside UI components. This isolates presentation concerns from network protocol details and centralizes base URL and error parsing logic.
+
+## HTTP Client
+The native browser `fetch` API is used in `services/api.ts` rather than pulling in external dependencies like Axios. Because the API surface is small and standard, native `fetch` reduces bundle size and keeps dependencies minimal.
+
+## State Management
+Standard React component state (`useState`, `useEffect`) is used. The application currently has localized UI workflows, and server data is already abstracted through service modules. Global state management libraries (Redux, Zustand) would introduce unnecessary boilerplate without clear benefit.
+
+## Client-Side Routing
+React Router (`react-router-dom`) is used to provide instant navigation across `/dashboard`, `/orders`, and `/customers` without full-page browser reloads, wrapped in a unified layout and sidebar.

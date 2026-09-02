@@ -8,11 +8,67 @@ An internal operations dashboard for viewing customers, tracking orders, filteri
 
 ## Tech Stack
 
-- **Frontend**: React, TypeScript, Vite
+- **Frontend**: React, TypeScript, Vite, React Router
 - **Backend**: FastAPI, Python 3.10, Uvicorn
 - **Database**: PostgreSQL 16 (Docker Compose)
 - **ORM & Migrations**: SQLAlchemy 2.0, Alembic
 - **Validation & Config**: Pydantic v2, Pydantic-Settings
+
+## Project Structure
+
+```text
+order-management-system/
+  backend/
+    app/
+      models/
+      routers/
+      schemas/
+      services/
+      config.py
+      database.py
+      main.py
+      seed.py
+    .env
+    requirements.txt
+  frontend/
+    src/
+      components/
+      pages/
+      services/
+      types/
+      App.tsx
+      main.tsx
+      index.css
+    .env.example
+  docs/
+    phase-1.md
+    phase-2.md
+    phase-3.md
+    phase-4.md
+    phase-5.md
+  docker-compose.yml
+  .gitignore
+  README.md
+  DECISIONS.md
+```
+
+## Frontend
+
+The frontend is built with React, TypeScript, and React Router.
+
+The application is organized into:
+- `components/` - Shared UI layout and navigation components
+- `pages/` - Application view components (Dashboard, Orders, Customers)
+- `services/` - Dedicated API communication modules (native `fetch`)
+- `types/` - TypeScript domain and API response contracts
+
+### Frontend Configuration
+
+The backend API URL is configured in `frontend/.env` using:
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+An example template is provided in `frontend/.env.example`.
 
 ## Database & Data Model
 
@@ -94,6 +150,7 @@ uvicorn app.main:app --reload
 ### 5. Run the Frontend
 ```powershell
 cd frontend
+npm install
 npm run dev
 ```
 Accessible at http://localhost:5173
