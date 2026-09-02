@@ -99,3 +99,18 @@ Customer profile metrics and order collections are served through separate endpo
 
 ## Customers With No Completed Orders
 Customers remain visible in the summary even when they have no completed orders. Their completed order count and value are represented as zero (`0` and `₹0.00`).
+
+## Order Creation Route (Phase 8)
+Order creation is provided through a dedicated route (`/orders/new`) rather than an overlay modal. This keeps the creation flow deep-linkable, simplifies error and loading state management, and avoids complex modal backdrop and focus trapping code.
+
+## Status Update via PATCH
+Order status changes use `PATCH /orders/{order_id}/status` because the mutation only updates a single field rather than replacing the complete order entity.
+
+## Unrestricted Status Transitions
+Order status transitions between `pending`, `completed`, and `cancelled` are unconstrained because the business specifications define no restrictive state transition rules. If transition constraints are introduced in the future, they should be centralized within the backend service rather than enforced only in React.
+
+## Status Update Reversal on Failure
+When a status change request fails, the frontend reverts the dropdown to its previous value and displays an error message, preventing the UI from misrepresenting unpersisted database state.
+
+## Dynamic Customer Metrics Propagation
+Customer summary metrics are dynamically computed from the underlying orders in PostgreSQL. Updating an order's status immediately updates the customer's completed order count and value on subsequent requests without requiring manual client-side synchronization or denormalized counter updates.

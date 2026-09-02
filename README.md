@@ -4,7 +4,7 @@ A small order management dashboard for operations teams.
 
 ## Overview
 
-An internal operations dashboard for viewing customers, tracking orders, filtering by order status, and calculating customer-level metrics.
+An internal operations dashboard for viewing customers, tracking orders, creating orders, updating order statuses, and calculating customer-level metrics.
 
 ## Tech Stack
 
@@ -40,6 +40,7 @@ order-management-system/
       pages/
         DashboardPage.tsx
         OrdersPage.tsx
+        CreateOrderPage.tsx
         CustomersPage.tsx
         CustomerDetailsPage.tsx
       services/
@@ -65,6 +66,7 @@ order-management-system/
     phase-5.md
     phase-6.md
     phase-7.md
+    phase-8.md
   docker-compose.yml
   .gitignore
   README.md
@@ -77,7 +79,7 @@ The frontend is built with React, TypeScript, and React Router.
 
 The application is organized into:
 - `components/` - Reusable UI layout, badge, and pagination components
-- `pages/` - Application view components (Dashboard, Orders, Customers, CustomerDetails)
+- `pages/` - Application view components (Dashboard, Orders, CreateOrder, Customers, CustomerDetails)
 - `services/` - Dedicated API communication modules using native `fetch`
 - `types/` - TypeScript domain and API response contracts
 - `utils/` - Currency and date formatters
@@ -90,17 +92,16 @@ VITE_API_BASE_URL=http://localhost:8000
 ```
 An example template is provided in `frontend/.env.example`.
 
-## Orders
+## Orders & Status Management
 
 The Orders screen supports:
 - Customer search with 300ms debouncing
 - Status filtering (`All`, `Pending`, `Completed`, `Cancelled`)
 - Sorting by supported fields (`Newest`, `Oldest`, `Highest Amount`, `Lowest Amount`)
 - Server-side pagination (`Showing X-Y of Z`, Previous/Next and direct page selection)
-- Order status display using visual badges
-- Formatted customer, amount (`INR`), and date information
-- Resilient loading, empty, and error states with an interactive Retry button
-- Automatic pagination reset to page 1 upon changing search, filter, or sort options
+- **In-place Status Management**: Operations users can update order status directly from the table (`Pending` <-> `Completed` <-> `Cancelled`) via `PATCH /orders/{id}/status` with in-flight loading indicators and automatic error rollback.
+- **Order Creation**: Dedicated form at `/orders/new` allowing users to select an existing customer, enter a positive monetary amount, set an initial status, and create the order in PostgreSQL via `POST /orders`.
+- **Dynamic Customer Propagation**: Updating an order's status to `completed` automatically increases the customer's completed orders count and completed value in the Customer Summary, while updating away from `completed` decreases it.
 
 ## Customer Summary
 
