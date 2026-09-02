@@ -41,6 +41,7 @@ order-management-system/
         DashboardPage.tsx
         OrdersPage.tsx
         CustomersPage.tsx
+        CustomerDetailsPage.tsx
       services/
         api.ts
         orders.ts
@@ -63,6 +64,7 @@ order-management-system/
     phase-4.md
     phase-5.md
     phase-6.md
+    phase-7.md
   docker-compose.yml
   .gitignore
   README.md
@@ -75,7 +77,7 @@ The frontend is built with React, TypeScript, and React Router.
 
 The application is organized into:
 - `components/` - Reusable UI layout, badge, and pagination components
-- `pages/` - Application view components (Dashboard, Orders, Customers)
+- `pages/` - Application view components (Dashboard, Orders, Customers, CustomerDetails)
 - `services/` - Dedicated API communication modules using native `fetch`
 - `types/` - TypeScript domain and API response contracts
 - `utils/` - Currency and date formatters
@@ -99,6 +101,15 @@ The Orders screen supports:
 - Formatted customer, amount (`INR`), and date information
 - Resilient loading, empty, and error states with an interactive Retry button
 - Automatic pagination reset to page 1 upon changing search, filter, or sort options
+
+## Customer Summary
+
+The Customers screen displays each customer's completed order count and completed order value.
+
+- **Completed Metrics**: Only orders with `completed` status contribute to these metrics, aggregated directly in PostgreSQL.
+- **Inclusive Summaries**: Customers with zero completed orders remain visible with `0` completed orders and `₹0.00` completed value.
+- **Customer Details Route**: Selecting a customer opens `/customers/:customerId`, displaying customer profile information, completed metrics, and their paginated order history.
+- **Focused Loading**: Customer profile details and order collections are queried through separate endpoints to avoid unbounded payload transfers.
 
 ## Database & Data Model
 

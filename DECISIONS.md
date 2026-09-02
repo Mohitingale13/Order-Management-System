@@ -90,3 +90,12 @@ Changing search text, status filter, or sorting option immediately resets pagina
 
 ## Error Recovery
 If the API fails to respond (such as during network or database outages), the Orders screen renders an error state with an interactive Retry button, allowing operations users to recover gracefully once service is restored without a hard browser refresh.
+
+## Customer Aggregation (Phase 7)
+Completed order count and completed order value are calculated server-side using SQL aggregation (`COUNT` and `SUM` filtered by `status = 'completed'` with a `LEFT JOIN` and `COALESCE`) rather than computed in the frontend.
+
+## Customer Detail Separation
+Customer profile metrics and order collections are served through separate endpoints (`GET /customers/{id}` and `GET /customers/{id}/orders`) so loading customer details does not unnecessarily transfer complete order histories.
+
+## Customers With No Completed Orders
+Customers remain visible in the summary even when they have no completed orders. Their completed order count and value are represented as zero (`0` and `₹0.00`).
