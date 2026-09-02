@@ -233,6 +233,91 @@ body {
   font-family: var(--font-mono);
 }
 
+/* Operations Toolbar */
+.orders-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.form-input,
+.form-select {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-family: inherit;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: #ffffff;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: var(--border-dark);
+}
+
+.search-input {
+  width: 260px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-subtle);
+  border-color: #d1d5db;
+}
+
+.btn-sm {
+  height: 36px;
+  padding: 0 12px;
+}
+
 /* Data Tables */
 .table-responsive {
   border: 1px solid var(--border-color);
@@ -335,8 +420,21 @@ body {
   font-size: 14px;
 }
 
+.empty-box h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
 .error-box {
   border-color: #fca5a5;
   background-color: #fef2f2;
   color: #991b1b;
+}
+/* Orders Meta */
+.orders-meta {
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
