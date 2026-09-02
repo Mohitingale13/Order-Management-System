@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { orderService } from '../services/orders';
-import { StatusBadge } from '../components/StatusBadge';
 import { Pagination } from '../components/Pagination';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import type { Order, OrderSortBy, OrderStatus, SortOrder } from '../types/order';
@@ -11,6 +11,13 @@ export const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Status mutation notification/error
+  const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
+  const [statusActionMessage, setStatusActionMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   // Filter & search states
   const [searchInput, setSearchInput] = useState<string>('');
@@ -92,13 +99,13 @@ export const OrdersPage: React.FC = () => {
   // Handler for status filter change
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value as OrderStatus | 'all');
-    setPage(1); // Reset to page 1 on filter change
+    setPage(1);
   };
 
   // Handler for sort change
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortPreset(e.target.value as SortPreset);
-    setPage(1); // Reset to page 1 on sort change
+    setPage(1);
   };
 
   // Handler to clear all filters
@@ -114,16 +121,72 @@ export const OrdersPage: React.FC = () => {
     setRetryCount((prev) => prev + 1);
   };
 
+  // 8E: Status Update Handler (PATCH /orders/{id}/status)
+  const handleOrderStatusUpdate = async (
+    orderId: number,
+    newStatus: OrderStatus,
+    prevStatus: OrderStatus
+  ) => {
+    if (newStatus === prevStatus) return;
+
+    setUpdatingOrderId(orderId);
+    setStatusActionMessage(null);
+
+    try {
+      await orderService.updateOrderStatus(orderId, { status: newStatus });
+
+      // Optimistically update local state on success
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+      );
+
+      setStatusActionMessage({
+        type: 'success',
+        text: `Order #${orderId} status updated to ${newStatus}.`,
+      });
+
+      // Clear success notification after 3 seconds
+      setTimeout(() => {
+        setStatusActionMessage(null);
+      }, 3000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unable to update order status.';
+      setStatusActionMessage({
+        type: 'error',
+        text: `Failed to update Order #${orderId}: ${msg}`,
+      });
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
   const isFiltered = debouncedSearch !== '' || statusFilter !== 'all' || sortPreset !== 'newest';
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <h1>Orders</h1>
-        <p>Operations order management, customer search, status filtering, and sorting.</p>
+      {/* Page Header with Create Order Action */}
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1>Orders</h1>
+          <p>Operations order management, customer search, status filtering, and sorting.</p>
+        </div>
+        <Link to="/orders/new" className="btn btn-primary">
+          + Create Order
+        </Link>
       </div>
 
-      {/* 6B, 6C, 6D: Operations Controls Toolbar */}
+      {/* Mutation feedback banner */}
+      {statusActionMessage && (
+        <div
+          className={`status-message-banner ${
+            statusActionMessage.type === 'success' ? 'banner-success' : 'banner-error'
+          }`}
+        >
+          {statusActionMessage.text}
+        </div>
+      )}
+
+      {/* Operations Controls Toolbar */}
       <div className="orders-toolbar">
         <div className="toolbar-group">
           <label htmlFor="customer-search" className="form-label">
@@ -236,7 +299,7 @@ export const OrdersPage: React.FC = () => {
                     <th style={{ width: '100px' }}>Order</th>
                     <th>Customer</th>
                     <th style={{ textAlign: 'right', width: '150px' }}>Amount</th>
-                    <th style={{ width: '130px', textAlign: 'center' }}>Status</th>
+                    <th style={{ width: '160px', textAlign: 'center' }}>Status</th>
                     <th style={{ width: '190px' }}>Date</th>
                   </tr>
                 </thead>
@@ -244,12 +307,40 @@ export const OrdersPage: React.FC = () => {
                   {orders.map((order) => (
                     <tr key={order.id}>
                       <td className="font-mono text-muted">#{order.id}</td>
-                      <td className="font-medium">{order.customer.name}</td>
+                      <td className="font-medium">
+                        <Link to={`/customers/${order.customer.id}`} className="customer-link">
+                          {order.customer.name}
+                        </Link>
+                      </td>
                       <td style={{ textAlign: 'right' }} className="font-mono font-medium">
                         {formatCurrency(order.amount)}
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        <StatusBadge status={order.status} />
+                        {/* 8E: In-place Status Editing */}
+                        <div className="status-select-wrapper">
+                          <select
+                            className={`status-select status-select-${order.status}`}
+                            value={order.status}
+                            disabled={updatingOrderId === order.id}
+                            onChange={(e) =>
+                              handleOrderStatusUpdate(
+                                order.id,
+                                e.target.value as OrderStatus,
+                                order.status
+                              )
+                            }
+                            title="Change order status"
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                          {updatingOrderId === order.id && (
+                            <span className="updating-indicator" title="Updating status...">
+                              ...
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="text-secondary">{formatDate(order.created_at)}</td>
                     </tr>
@@ -258,7 +349,7 @@ export const OrdersPage: React.FC = () => {
               </table>
             </div>
 
-            {/* 6E: Server-side Pagination Component */}
+            {/* Server-side Pagination Component */}
             <Pagination
               currentPage={page}
               totalPages={totalPages}

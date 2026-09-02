@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { CreateOrderPage } from './pages/CreateOrderPage';
 import { CustomerDetailsPage } from './pages/CustomerDetailsPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -14,6 +15,7 @@ export const App: React.FC = () => {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/new" element={<CreateOrderPage />} />
           <Route path="customers" element={<CustomersPage />} />
           <Route path="customers/:customerId" element={<CustomerDetailsPage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
