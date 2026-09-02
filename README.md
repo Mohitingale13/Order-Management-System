@@ -67,6 +67,7 @@ order-management-system/
     phase-6.md
     phase-7.md
     phase-8.md
+    phase-9.md
   docker-compose.yml
   .gitignore
   README.md
@@ -91,6 +92,15 @@ The backend API URL is configured in `frontend/.env` using:
 VITE_API_BASE_URL=http://localhost:8000
 ```
 An example template is provided in `frontend/.env.example`.
+
+## Dashboard
+
+The operations Dashboard provides an instant snapshot of operational health through three primary metrics:
+- **Total Orders**: Total volume of orders recorded across all statuses (`pending`, `completed`, `cancelled`).
+- **Completed Order Value**: Total monetary revenue generated exclusively from orders with `completed` status (`formatCurrency`).
+- **Total Customers**: Total registered customer accounts.
+- **Server-Side Aggregations**: All three metrics are computed directly in PostgreSQL via a single `GET /dashboard/summary` endpoint, ensuring fast response times regardless of total dataset volume.
+- **Resilient States**: Includes clean loading card skeletons, controlled error handling with an interactive **Retry** button, and on-demand refresh.
 
 ## Orders & Status Management
 

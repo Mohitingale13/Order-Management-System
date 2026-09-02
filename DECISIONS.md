@@ -107,10 +107,16 @@ Order creation is provided through a dedicated route (`/orders/new`) rather than
 Order status changes use `PATCH /orders/{order_id}/status` because the mutation only updates a single field rather than replacing the complete order entity.
 
 ## Unrestricted Status Transitions
-Order status transitions between `pending`, `completed`, and `cancelled` are unconstrained because the business specifications define no restrictive state transition rules. If transition constraints are introduced in the future, they should be centralized within the backend service rather than enforced only in React.
+Order status transitions between `pending`, `completed`, and `cancelled` are unconstrained because the business specifications define no restrictive state transition rules. If transition constraints are introduced in the future, they should be centralized within the backend service layer.
 
 ## Status Update Reversal on Failure
 When a status change request fails, the frontend reverts the dropdown to its previous value and displays an error message, preventing the UI from misrepresenting unpersisted database state.
 
 ## Dynamic Customer Metrics Propagation
 Customer summary metrics are dynamically computed from the underlying orders in PostgreSQL. Updating an order's status immediately updates the customer's completed order count and value on subsequent requests without requiring manual client-side synchronization or denormalized counter updates.
+
+## Dashboard Summary Endpoint (Phase 9)
+Dashboard metrics (`total_orders`, `total_completed_order_value`, `total_customers`) are computed server-side in PostgreSQL and returned via a single summary endpoint (`GET /dashboard/summary`). This eliminates the need to execute multiple network round-trips and prevents transferring entire record sets to the client.
+
+## Scope Discipline on Visual Analytics
+Dedicated chart libraries, analytics widgets, or real-time polling were omitted to keep the implementation simple, reliable, and easily testable under network constraints. On-demand refresh provides operations users with real-time database state when needed.
