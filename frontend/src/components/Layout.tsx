@@ -7,10 +7,6 @@ export const Layout: React.FC = () => {
     <div className="app-layout">
       <header className="app-header">
         <div className="header-title">Order Management Dashboard</div>
-        <div className="header-status">
-          <span className="status-dot"></span>
-          System Online
-        </div>
       </header>
       <div className="app-body">
         <Sidebar />

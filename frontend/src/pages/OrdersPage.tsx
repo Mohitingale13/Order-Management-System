@@ -176,7 +176,7 @@ export const OrdersPage: React.FC = () => {
           <h1>Orders</h1>
           <p>Operations order management, customer search, status filtering, and sorting.</p>
         </div>
-        <Link to="/orders/new" className="btn btn-primary">
+        <Link to="/orders/new" className="btn btn-primary btn-sm">
           + Create Order
         </Link>
       </div>
