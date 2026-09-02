@@ -20,12 +20,16 @@ export const DashboardPage: React.FC = () => {
       .then((data) => {
         if (isMounted) {
           setSummary(data);
-          setLoading(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
-          setError(err.message || 'Unable to load dashboard metrics.');
+          setError(err.message || 'Unable to load dashboard metrics. Please check backend connectivity.');
+        }
+      })
+      .finally(() => {
+        // 10.5: Guarantee loading state is always cleared whether request succeeds or fails
+        if (isMounted) {
           setLoading(false);
         }
       });
@@ -79,7 +83,7 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Loading state skeleton / indicator */}
+      {/* Loading state skeleton */}
       {loading && !error && (
         <div className="metric-cards-grid">
           <div className="metric-card loading-card">
@@ -100,7 +104,7 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* 9D: Three Primary Operations Metric Cards */}
+      {/* Primary Operations Metric Cards */}
       {!loading && !error && summary && (
         <>
           <div className="metric-cards-grid">

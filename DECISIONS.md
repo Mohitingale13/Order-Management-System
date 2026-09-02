@@ -120,3 +120,6 @@ Dashboard metrics (`total_orders`, `total_completed_order_value`, `total_custome
 
 ## Scope Discipline on Visual Analytics
 Dedicated chart libraries, analytics widgets, or real-time polling were omitted to keep the implementation simple, reliable, and easily testable under network constraints. On-demand refresh provides operations users with real-time database state when needed.
+
+## Reliability & State Modeling (Phase 10)
+API-driven pages explicitly model loading, success, empty, and error states. Asynchronous operations guarantee loading indicators are cleared in `.finally()` handlers to prevent perpetual loading lockups on network or server failures. Mutation actions disable during active requests to prevent duplicate submissions, and backend database failures are rolled back with controlled 500 responses without exposing internal stack traces.

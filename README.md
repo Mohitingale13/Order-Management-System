@@ -68,6 +68,7 @@ order-management-system/
     phase-7.md
     phase-8.md
     phase-9.md
+    phase-10.md
   docker-compose.yml
   .gitignore
   README.md
@@ -122,6 +123,15 @@ The Customers screen displays each customer's completed order count and complete
 - **Customer Details Route**: Selecting a customer opens `/customers/:customerId`, displaying customer profile information, completed metrics, and their paginated order history.
 - **Focused Loading**: Customer profile details and order collections are queried through separate endpoints to avoid unbounded payload transfers.
 
+## Reliability and Error Handling
+
+The system implements multi-tiered validation and fault tolerance:
+- **State Guarantees**: Frontend asynchronous operations strictly clear loading flags in `.finally()` handlers, eliminating perpetual `Loading...` lockups on failure.
+- **Explicit State Modeling**: Every data-driven view cleanly distinguishes between **Loading**, **Success (With Data)**, **Empty Result** (e.g. valid query with 0 matches), and **Error** states.
+- **Duplicate Mutation Protection**: Form submissions and in-place status editors disable their controls and display active in-flight indicators while requests are executing.
+- **Error Masking & Rollbacks**: Database exceptions are logged server-side and masked as generic 500 errors to API consumers, while write operations execute automatic `db.rollback()` on transaction failure.
+- **Outage Recovery**: If the database or backend becomes unreachable, views render an error card with an interactive **Retry** button, allowing operations users to recover as soon as service is restored without reloading the application.
+
 ## Database & Data Model
 
 The database runs in PostgreSQL via Docker Compose (`order-management-postgres`).
@@ -158,18 +168,6 @@ The database runs in PostgreSQL via Docker Compose (`order-management-postgres`)
 
 ### Dashboard
 - `GET /dashboard/summary`
-
-## Validation and Error Handling
-
-The API validates request data at the API boundary using Pydantic and performs domain-level validation in the service layer.
-
-Examples include:
-- Positive order amounts (`amount > 0`)
-- Valid order statuses (`pending`, `completed`, `cancelled`)
-- Valid pagination values (`page >= 1`, `1 <= page_size <= 100`)
-- Existing customer validation when creating orders (returns `404 Customer not found`)
-- Resource existence checks (returns `404` for nonexistent customers or orders)
-- Controlled error masking: database failures return a clean generic 500 response (`Unable to process the request at this time.`) without leaking database credentials or Python stack traces.
 
 ## Setup & Running Locally
 

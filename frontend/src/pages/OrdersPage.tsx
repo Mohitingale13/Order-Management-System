@@ -81,12 +81,16 @@ export const OrdersPage: React.FC = () => {
           setOrders(data.items);
           setTotalCount(data.total);
           setTotalPages(data.total_pages);
-          setLoading(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
-          setError(err.message || 'Unable to load orders.');
+          setError(err.message || 'Unable to load orders. Please check backend connection and retry.');
+        }
+      })
+      .finally(() => {
+        // 10.5: Guaranteed to clear loading indicator on both success and failure
+        if (isMounted) {
           setLoading(false);
         }
       });
@@ -121,7 +125,7 @@ export const OrdersPage: React.FC = () => {
     setRetryCount((prev) => prev + 1);
   };
 
-  // 8E: Status Update Handler (PATCH /orders/{id}/status)
+  // 8E & 10F: Status Update Handler with concurrency disablement and revert on error
   const handleOrderStatusUpdate = async (
     orderId: number,
     newStatus: OrderStatus,
@@ -129,13 +133,14 @@ export const OrdersPage: React.FC = () => {
   ) => {
     if (newStatus === prevStatus) return;
 
+    // Prevent duplicate mutations by marking order as updating
     setUpdatingOrderId(orderId);
     setStatusActionMessage(null);
 
     try {
       await orderService.updateOrderStatus(orderId, { status: newStatus });
 
-      // Optimistically update local state on success
+      // Optimistically update local row state on success
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
       );
@@ -145,7 +150,6 @@ export const OrdersPage: React.FC = () => {
         text: `Order #${orderId} status updated to ${newStatus}.`,
       });
 
-      // Clear success notification after 3 seconds
       setTimeout(() => {
         setStatusActionMessage(null);
       }, 3000);
@@ -155,7 +159,9 @@ export const OrdersPage: React.FC = () => {
         type: 'error',
         text: `Failed to update Order #${orderId}: ${msg}`,
       });
+      // Revert select implicitly remains at prevStatus because local state was not updated
     } finally {
+      // 10.5 & 10.14: Clear updating lock
       setUpdatingOrderId(null);
     }
   };
@@ -316,7 +322,6 @@ export const OrdersPage: React.FC = () => {
                         {formatCurrency(order.amount)}
                       </td>
                       <td style={{ textAlign: 'center' }}>
-                        {/* 8E: In-place Status Editing */}
                         <div className="status-select-wrapper">
                           <select
                             className={`status-select status-select-${order.status}`}

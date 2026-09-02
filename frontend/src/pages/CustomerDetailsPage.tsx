@@ -45,12 +45,15 @@ export const CustomerDetailsPage: React.FC = () => {
       .then((data) => {
         if (isMounted) {
           setCustomer(data);
-          setLoadingCustomer(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
-          setCustomerError(err.message || 'Unable to load customer details.');
+          setCustomerError(err.message || 'Unable to load customer details. Please check connection.');
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
           setLoadingCustomer(false);
         }
       });
@@ -75,12 +78,15 @@ export const CustomerDetailsPage: React.FC = () => {
           setOrders(data.items);
           setTotalOrders(data.total);
           setTotalOrderPages(data.total_pages);
-          setLoadingOrders(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
           setOrdersError(err.message || 'Unable to load customer orders.');
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
           setLoadingOrders(false);
         }
       });
@@ -147,7 +153,7 @@ export const CustomerDetailsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 7D: Customer Order Inspection Section */}
+          {/* Customer Order Inspection Section */}
           <div className="customer-orders-section" style={{ marginTop: '32px' }}>
             <div className="section-header" style={{ marginBottom: '16px' }}>
               <h2>Order History</h2>
@@ -208,7 +214,7 @@ export const CustomerDetailsPage: React.FC = () => {
                   </table>
                 </div>
 
-                {/* 7.13: Customer Orders Pagination */}
+                {/* Customer Orders Pagination */}
                 <Pagination
                   currentPage={orderPage}
                   totalPages={totalOrderPages}

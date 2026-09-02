@@ -31,12 +31,16 @@ export const CustomersPage: React.FC = () => {
           setCustomers(data.items);
           setTotalCount(data.total);
           setTotalPages(data.total_pages);
-          setLoading(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
-          setError(err.message || 'Unable to load customer summaries.');
+          setError(err.message || 'Unable to load customer summaries. Please check backend connection.');
+        }
+      })
+      .finally(() => {
+        // 10.5: Guaranteed to clear loading indicator on both success and failure
+        if (isMounted) {
           setLoading(false);
         }
       });
@@ -78,7 +82,7 @@ export const CustomersPage: React.FC = () => {
         {!loading && !error && customers.length === 0 && (
           <div className="state-box empty-box">
             <h3>No customers found</h3>
-            <p className="text-secondary">There are currently no customer accounts registered.</p>
+            <p className="text-secondary">There are currently no customer accounts registered in the database.</p>
           </div>
         )}
 
