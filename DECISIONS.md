@@ -123,3 +123,10 @@ Dedicated chart libraries, analytics widgets, or real-time polling were omitted 
 
 ## Reliability & State Modeling (Phase 10)
 API-driven pages explicitly model loading, success, empty, and error states. Asynchronous operations guarantee loading indicators are cleared in `.finally()` handlers to prevent perpetual loading lockups on network or server failures. Mutation actions disable during active requests to prevent duplicate submissions, and backend database failures are rolled back with controlled 500 responses without exposing internal stack traces.
+
+## Scalability & Large Dataset Architecture (Phase 11)
+The Orders API performs filtering, sorting, and pagination strictly server-side in PostgreSQL so the frontend never needs to load the complete order dataset into memory.
+
+The current implementation uses page-based offset pagination because it is predictable, simple to navigate, and suitable for the assignment's current scope. For large production datasets (e.g. 5M+ orders) or deep traversal patterns, keyset/cursor-based pagination would be the recommended evolution to avoid row-skipping performance degradation.
+
+Database indexing follows known query patterns rather than indexing every column indiscriminately, balancing read acceleration with write maintenance overhead. Additional optimizations (composite indexes, read replicas, caching, and partitioning) should be introduced based on monitored query latency and profiling rather than premature complexity.

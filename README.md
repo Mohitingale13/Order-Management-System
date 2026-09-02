@@ -69,6 +69,7 @@ order-management-system/
     phase-8.md
     phase-9.md
     phase-10.md
+    phase-11.md
   docker-compose.yml
   .gitignore
   README.md
@@ -132,6 +133,41 @@ The system implements multi-tiered validation and fault tolerance:
 - **Error Masking & Rollbacks**: Database exceptions are logged server-side and masked as generic 500 errors to API consumers, while write operations execute automatic `db.rollback()` on transaction failure.
 - **Outage Recovery**: If the database or backend becomes unreachable, views render an error card with an interactive **Retry** button, allowing operations users to recover as soon as service is restored without reloading the application.
 
+## Scalability Considerations (5M+ Orders & Hundreds of Thousands of Customers)
+
+The application architecture was designed from the beginning to support large data volumes without requiring full table loading in memory:
+
+### 1. Server-Side Execution Model
+- The frontend never loads the full order dataset. All filtering, sorting, and pagination parameters are passed to FastAPI and executed directly within PostgreSQL using SQL `WHERE`, `ORDER BY`, `LIMIT`, and `OFFSET`.
+- Payload sizes delivered to the browser remain constant (~10 to 50 records, <5 KB) regardless of whether the table holds 40 rows or 5,000,000 rows.
+
+### 2. Database Index Strategy
+The database schema includes targeted B-tree indexes corresponding to primary operations query patterns:
+- `orders(customer_id)`: Optimizes foreign key joins and customer-specific order history queries (`GET /customers/{id}/orders`).
+- `orders(status)`: Optimizes dashboard status filtering (`GET /orders?status=completed`).
+- `orders(created_at)`: Accelerates chronological sorting for newest/oldest views.
+- `customers(email)`: Enforces customer uniqueness and accelerates email lookups.
+
+**Composite Indexes**: For frequent multi-column queries (e.g. `WHERE status = 'completed' ORDER BY created_at DESC`), a composite index on `(status, created_at DESC)` would allow index-only scans. Composite indexes should be added based on monitored production query plans (`EXPLAIN ANALYZE`) to balance read acceleration against index write maintenance overhead.
+
+### 3. Deep Pagination: Offset vs Keyset/Cursor Pagination
+- **Current Approach**: Offset-based pagination (`OFFSET X LIMIT Y`) is simple, predictable, and suitable for typical operational browsing.
+- **Scale Limitation**: At very deep offsets (e.g. page 50,000), PostgreSQL must scan and discard 500,000 rows before returning the requested 10 rows.
+- **Future Scale Path**: For 5M+ orders with deep traversal requirements, the API would evolve to keyset/cursor-based pagination (`WHERE (created_at, id) < (cursor_created_at, cursor_id) ORDER BY created_at DESC, id DESC LIMIT 10`), providing constant $O(1)$ indexed access time.
+
+### 4. Scaling Customer Management (Hundreds of Thousands of Customers)
+- At 300,000+ customers, loading all customers into a static `<select>` tag in the Order Creation form is unviable.
+- The customer selector would evolve into a debounced asynchronous search input (`GET /customers?search=john&limit=10`), querying matching accounts on demand.
+- Customer summaries would continue utilizing paginated SQL aggregations with indexed foreign keys.
+
+### 5. Infrastructure Evolution at Scale
+- **Read Replicas**: If read queries create database contention, separate read replicas could serve dashboard and listing traffic, while write operations target the primary node.
+- **Aggregation Caching (Redis)**: If the dashboard endpoint receives heavy request volumes, caching aggregate metrics with a short TTL or event-driven invalidation would reduce repetitive database scans.
+- **Partitioning**: Order records could be partitioned by year or quarter (`PARTITION BY RANGE (created_at)`), improving query isolation and data lifecycle archiving for multi-year datasets.
+- **Background Workers**: Heavy operations such as bulk data exports or monthly statement generations would be offloaded to asynchronous background job queues rather than blocking synchronous HTTP requests.
+
+*Note: These advanced mechanisms are intentionally not implemented for this assignment because the current scope does not warrant the operational overhead.*
+
 ## Database & Data Model
 
 The database runs in PostgreSQL via Docker Compose (`order-management-postgres`).
@@ -147,12 +183,6 @@ The database runs in PostgreSQL via Docker Compose (`order-management-postgres`)
   - `amount`: Monetary value (`numeric(12, 2)`)
   - `status`: Order status (`varchar(20)`, indexed - `pending`, `completed`, `cancelled`)
   - `created_at`: Timestamp with timezone (indexed)
-
-### Indexes
-- `ix_customers_email` on `customers(email)` (unique)
-- `ix_orders_customer_id` on `orders(customer_id)`
-- `ix_orders_status` on `orders(status)`
-- `ix_orders_created_at` on `orders(created_at)`
 
 ## API
 
@@ -208,7 +238,3 @@ Accessible at http://localhost:5173
 ## Assumptions
 - **Customer Email Uniqueness**: Customer emails are treated as unique identifiers for this operations domain. If business requirements permit shared emails, this constraint can be removed via migration.
 - **Monetary Values**: `numeric(12, 2)` is strictly used for all order amounts to prevent floating-point precision issues.
-
-## Scalability Considerations (5M+ Orders)
-- Targeted indexes on `orders(customer_id)`, `orders(status)`, and `orders(created_at)` optimize expected foreign key joins, status filtering, and chronological sorting.
-- Server-side filtering, sorting, and pagination ensure the browser only fetches the active page slice regardless of total record volume.
