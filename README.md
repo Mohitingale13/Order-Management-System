@@ -33,9 +33,25 @@ order-management-system/
   frontend/
     src/
       components/
+        Layout.tsx
+        Sidebar.tsx
+        StatusBadge.tsx
+        Pagination.tsx
       pages/
+        DashboardPage.tsx
+        OrdersPage.tsx
+        CustomersPage.tsx
       services/
+        api.ts
+        orders.ts
+        customers.ts
+        dashboard.ts
       types/
+        order.ts
+        customer.ts
+        dashboard.ts
+      utils/
+        formatters.ts
       App.tsx
       main.tsx
       index.css
@@ -46,6 +62,7 @@ order-management-system/
     phase-3.md
     phase-4.md
     phase-5.md
+    phase-6.md
   docker-compose.yml
   .gitignore
   README.md
@@ -57,10 +74,11 @@ order-management-system/
 The frontend is built with React, TypeScript, and React Router.
 
 The application is organized into:
-- `components/` - Shared UI layout and navigation components
+- `components/` - Reusable UI layout, badge, and pagination components
 - `pages/` - Application view components (Dashboard, Orders, Customers)
-- `services/` - Dedicated API communication modules (native `fetch`)
+- `services/` - Dedicated API communication modules using native `fetch`
 - `types/` - TypeScript domain and API response contracts
+- `utils/` - Currency and date formatters
 
 ### Frontend Configuration
 
@@ -69,6 +87,18 @@ The backend API URL is configured in `frontend/.env` using:
 VITE_API_BASE_URL=http://localhost:8000
 ```
 An example template is provided in `frontend/.env.example`.
+
+## Orders
+
+The Orders screen supports:
+- Customer search with 300ms debouncing
+- Status filtering (`All`, `Pending`, `Completed`, `Cancelled`)
+- Sorting by supported fields (`Newest`, `Oldest`, `Highest Amount`, `Lowest Amount`)
+- Server-side pagination (`Showing X-Y of Z`, Previous/Next and direct page selection)
+- Order status display using visual badges
+- Formatted customer, amount (`INR`), and date information
+- Resilient loading, empty, and error states with an interactive Retry button
+- Automatic pagination reset to page 1 upon changing search, filter, or sort options
 
 ## Database & Data Model
 
@@ -161,4 +191,4 @@ Accessible at http://localhost:5173
 
 ## Scalability Considerations (5M+ Orders)
 - Targeted indexes on `orders(customer_id)`, `orders(status)`, and `orders(created_at)` optimize expected foreign key joins, status filtering, and chronological sorting.
-- Fixed-precision numeric types prevent calculation rounding drift across large aggregations.
+- Server-side filtering, sorting, and pagination ensure the browser only fetches the active page slice regardless of total record volume.

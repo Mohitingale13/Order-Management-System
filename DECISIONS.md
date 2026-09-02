@@ -78,3 +78,15 @@ Standard React component state (`useState`, `useEffect`) is used. The applicatio
 
 ## Client-Side Routing
 React Router (`react-router-dom`) is used to provide instant navigation across `/dashboard`, `/orders`, and `/customers` without full-page browser reloads, wrapped in a unified layout and sidebar.
+
+## Orders Filtering and Pagination (Phase 6)
+Search, status filtering, sorting, and pagination are performed strictly server-side. The frontend sends query parameters to the backend and renders only the returned slice. This prevents transferring complete datasets (e.g. millions of orders) to the browser.
+
+## Search Debouncing
+Customer search is debounced by 300ms so network requests are only triggered after the user pauses typing, reducing superfluous API traffic.
+
+## Pagination Reset
+Changing search text, status filter, or sorting option immediately resets pagination to page 1 because the total record count and page boundaries change.
+
+## Error Recovery
+If the API fails to respond (such as during network or database outages), the Orders screen renders an error state with an interactive Retry button, allowing operations users to recover gracefully once service is restored without a hard browser refresh.
