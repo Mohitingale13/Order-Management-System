@@ -1,4 +1,4 @@
-from math import ceil
+﻿from math import ceil
 from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy import asc, desc
@@ -42,7 +42,7 @@ class OrderService:
             query = query.filter(Order.status == status_filter.value)
 
         total = query.count()
-        total_pages = ceil(total / page_size) if total > 0 else 1
+        total_pages = ceil(total / page_size) if total > 0 else 0
 
         sort_column_map = {
             OrderSortBy.CREATED_AT: Order.created_at,
@@ -84,7 +84,7 @@ class OrderService:
         if not customer:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Customer with ID {request.customer_id} does not exist",
+                detail="Customer not found",
             )
 
         order = Order(
@@ -92,9 +92,13 @@ class OrderService:
             amount=request.amount,
             status=request.status.value,
         )
-        db.add(order)
-        db.commit()
-        db.refresh(order)
+        try:
+            db.add(order)
+            db.commit()
+            db.refresh(order)
+        except Exception:
+            db.rollback()
+            raise
 
         return OrderResponse(
             id=order.id,
@@ -115,12 +119,16 @@ class OrderService:
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Order with ID {order_id} does not exist",
+                detail="Order not found",
             )
 
         order.status = request.status.value
-        db.commit()
-        db.refresh(order)
+        try:
+            db.commit()
+            db.refresh(order)
+        except Exception:
+            db.rollback()
+            raise
 
         return OrderStatusUpdateResponse(
             id=order.id,

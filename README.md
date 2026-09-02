@@ -1,4 +1,4 @@
-# Order Management Dashboard
+ï»¿# Order Management Dashboard
 
 A small order management dashboard for operations teams.
 
@@ -27,7 +27,7 @@ The database runs in PostgreSQL via Docker Compose (`order-management-postgres`)
   - `id`: Integer primary key
   - `customer_id`: Foreign key referencing `customers.id` (ON DELETE CASCADE, indexed)
   - `amount`: Monetary value (`numeric(12, 2)`)
-  - `status`: Order status (`varchar(20)`, indexed — `pending`, `completed`, `cancelled`)
+  - `status`: Order status (`varchar(20)`, indexed - `pending`, `completed`, `cancelled`)
   - `created_at`: Timestamp with timezone (indexed)
 
 ### Indexes
@@ -50,6 +50,18 @@ The database runs in PostgreSQL via Docker Compose (`order-management-postgres`)
 
 ### Dashboard
 - `GET /dashboard/summary`
+
+## Validation and Error Handling
+
+The API validates request data at the API boundary using Pydantic and performs domain-level validation in the service layer.
+
+Examples include:
+- Positive order amounts (`amount > 0`)
+- Valid order statuses (`pending`, `completed`, `cancelled`)
+- Valid pagination values (`page >= 1`, `1 <= page_size <= 100`)
+- Existing customer validation when creating orders (returns `404 Customer not found`)
+- Resource existence checks (returns `404` for nonexistent customers or orders)
+- Controlled error masking: database failures return a clean generic 500 response (`Unable to process the request at this time.`) without leaking database credentials or Python stack traces.
 
 ## Setup & Running Locally
 

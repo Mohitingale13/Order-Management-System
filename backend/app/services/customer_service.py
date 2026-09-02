@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy import case, func
@@ -65,7 +65,7 @@ class CustomerService:
         if not customer:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Customer with ID {customer_id} does not exist",
+                detail="Customer not found",
             )
         return CustomerResponse.model_validate(customer)
 
@@ -80,7 +80,7 @@ class CustomerService:
         if not customer:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Customer with ID {customer_id} does not exist",
+                detail="Customer not found",
             )
 
         return OrderService.get_orders(

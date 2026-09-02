@@ -1,4 +1,4 @@
-# Engineering Decisions
+﻿# Engineering Decisions
 
 ## Frontend
 React with TypeScript was chosen because React and TypeScript are part of the required technology stack. TypeScript also provides type safety for frontend models and API responses.
@@ -54,3 +54,15 @@ Pagination is performed strictly at the API and database layer using SQL `LIMIT`
 
 ## Sortable Fields Whitelist
 Sorting uses a strict whitelist of supported fields (`created_at`, `amount`, `status`) and sort directions (`asc`, `desc`). This prevents SQL injection vulnerabilities and ensures client queries only hit indexed columns.
+
+## Validation (Phase 4)
+Request-level validation is handled with Pydantic, while checks that require database state (such as customer existence during order creation) are handled in the service layer.
+
+## Error Handling & Exception Masking
+Known client errors return appropriate 4xx responses. Unexpected database or application errors are handled server-side without exposing internal exception details or stack traces to API clients, returning a controlled HTTP 500 response.
+
+## Pagination Limits
+The API requires page numbers to be at least 1 and limits page size to 100 to prevent accidentally large payloads or denial-of-service queries.
+
+## Empty Results
+A valid query that produces no records returns a successful HTTP 200 response with an empty result set (`total: 0`, `total_pages: 0`) rather than an error or 404 response.

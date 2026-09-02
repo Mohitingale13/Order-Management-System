@@ -1,5 +1,5 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, Query, status
+﻿from typing import Optional
+from fastapi import APIRouter, Depends, Path, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -20,12 +20,12 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 @router.get("", response_model=PaginatedOrdersResponse)
 def list_orders(
-    search: Optional[str] = Query(None, description="Search orders by customer name"),
+    search: Optional[str] = Query(None, max_length=100, description="Search orders by customer name"),
     status: Optional[OrderStatus] = Query(None, description="Filter by order status"),
     sort_by: OrderSortBy = Query(OrderSortBy.CREATED_AT, description="Field to sort by"),
-    sort_order: SortOrder = Query(SortOrder.DESC, description="Sort order (asc/desc)"),
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
+    sort_order: SortOrder = Query(SortOrder.DESC, description="Sort direction (asc/desc)"),
+    page: int = Query(1, ge=1, description="Page number (minimum 1)"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page (between 1 and 100)"),
     db: Session = Depends(get_db),
 ):
     return OrderService.get_orders(
@@ -49,8 +49,8 @@ def create_order(
 
 @router.patch("/{order_id}/status", response_model=OrderStatusUpdateResponse)
 def update_order_status(
-    order_id: int,
-    request: OrderStatusUpdateRequest,
+    order_id: int = Path(..., ge=1, description="Positive integer order ID"),
+    request: OrderStatusUpdateRequest = ...,
     db: Session = Depends(get_db),
 ):
     return OrderService.update_order_status(
