@@ -1,116 +1,74 @@
 ﻿# Order Management Dashboard
 
-A full-stack order management dashboard built with React, TypeScript, FastAPI, PostgreSQL, and SQLAlchemy.
+A simple full-stack order management dashboard built with React, TypeScript, FastAPI, and PostgreSQL.
 
 ## Overview
 
-The Order Management Dashboard is a full-stack application for viewing and managing customer orders.
+This application lets operations teams view, search, and manage customer orders and view high-level revenue metrics.
 
-The application provides:
-- Dashboard-level order and customer metrics
-- Searchable, filterable, sortable orders
-- Server-side pagination
-- Customer-level order summaries
-- Customer detail view with order inspection
-- Order creation with validation
-- In-place order status updates
-- Resilient loading, empty, and error recovery states
-
-The backend exposes a REST API using FastAPI, with PostgreSQL used for persistent storage.
+Key capabilities:
+- Real-time dashboard showing total orders, completed order revenue, and customer count
+- Search orders by customer name, filter by status, and sort by date or amount
+- Server-side pagination for orders and customer summaries
+- Customer detail page showing customer profile and their order history
+- Create new orders with validation (customer, amount > 0, status)
+- Update an order's status directly from the orders table
+- Handles loading states, empty searches, and network/backend errors gracefully
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React + TypeScript |
-| Build Tool | Vite |
-| Backend | Python + FastAPI |
-| Database | PostgreSQL 16 |
-| ORM | SQLAlchemy 2.0 |
-| Migrations | Alembic |
-| API Protocol | REST |
-| Containerization | Docker Compose |
-| Version Control | Git |
+- **Frontend**: React 18, TypeScript, Vite, React Router
+- **Backend**: Python 3.10+, FastAPI, Uvicorn
+- **Database**: PostgreSQL 16 (via Docker Compose)
+- **ORM & Migrations**: SQLAlchemy 2.0, Alembic
+- **Styling**: Vanilla CSS (custom monochrome theme, no CSS libraries)
 
 ## Features
 
-- **Dashboard Metrics**: Real-time totals for orders, completed revenue, and customer accounts derived directly from PostgreSQL.
-- **Orders Management**: Operations table supporting customer name search (300ms debounced), status filtering (`pending`, `completed`, `cancelled`), and sorting (`newest`, `oldest`, `highest amount`, `lowest amount`).
-- **Server-Side Pagination**: Constant-size data slicing with previous/next and direct page jumping.
-- **Customer Summaries**: Aggregated completed order counts and completed values per customer.
-- **Customer Inspection**: Dedicated detail route (`/customers/:id`) displaying profile info, aggregate cards, and customer order history.
-- **Order Creation**: Dedicated form (`/orders/new`) with customer dropdown, positive amount validation, and initial status selection.
-- **Status Updates**: In-place status modification (`PATCH /orders/{id}/status`) directly in the Orders table with in-flight loading indicators and automatic UI reversion on error.
-- **State Resilience**: Non-blocking loading guarantees via `.finally()`, explicit empty states, and interactive retry mechanisms for API and database outages.
+- **Dashboard**: High-level operational metrics (Total Orders, Total Revenue from completed orders, Total Customers) and a table of the 5 newest orders.
+- **Orders Management**: Paginated table with 300ms debounced search, status dropdown filter (`pending`, `completed`, `cancelled`), and sorting presets.
+- **Status Updates**: Change order status directly in the table (`PATCH /orders/{id}/status`) with an in-flight indicator and automatic rollback if the API fails.
+- **Customer Directory**: Summary table showing completed orders and revenue per customer, with links to detailed order history.
+- **Create Order**: Dedicated `/orders/new` page with customer selection, positive amount validation, and status selection.
 
 ## Project Structure
 
 ```text
-order-management-system/
-├── backend/
-│   ├── alembic/
-│   │   ├── versions/
-│   │   └── env.py
-│   ├── app/
-│   │   ├── models/
-│   │   │   ├── customer.py
-│   │   │   ├── order.py
-│   │   │   └── base.py
-│   │   ├── routers/
-│   │   │   ├── customers.py
-│   │   │   ├── dashboard.py
-│   │   │   └── orders.py
-│   │   ├── schemas/
-│   │   │   ├── customer.py
-│   │   │   ├── dashboard.py
-│   │   │   └── order.py
-│   │   ├── services/
-│   │   │   ├── customer_service.py
-│   │   │   ├── dashboard_service.py
-│   │   │   └── order_service.py
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── main.py
-│   │   └── seed.py
-│   ├── .env.example
-│   ├── alembic.ini
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Layout.tsx
-│   │   │   ├── Pagination.tsx
-│   │   │   ├── Sidebar.tsx
-│   │   │   └── StatusBadge.tsx
-│   │   ├── pages/
-│   │   │   ├── CreateOrderPage.tsx
-│   │   │   ├── CustomerDetailsPage.tsx
-│   │   │   ├── CustomersPage.tsx
-│   │   │   ├── DashboardPage.tsx
-│   │   │   └── OrdersPage.tsx
-│   │   ├── services/
-│   │   │   ├── api.ts
-│   │   │   ├── customers.ts
-│   │   │   ├── dashboard.ts
-│   │   │   └── orders.ts
-│   │   ├── types/
-│   │   │   ├── customer.ts
-│   │   │   ├── dashboard.ts
-│   │   │   └── order.ts
-│   │   ├── utils/
-│   │   │   └── formatters.ts
-│   │   ├── App.tsx
-│   │   ├── index.css
-│   │   └── main.tsx
-│   ├── .env.example
-│   └── package.json
-│
-├── docs/
-├── docker-compose.yml
-├── DECISIONS.md
-├── README.md
-└── .gitignore
+Order Management system/
+|-- backend/
+|   |-- alembic/
+|   |   |-- versions/
+|   |   |-- env.py
+|   |-- app/
+|   |   |-- models/          # SQLAlchemy database models
+|   |   |-- routers/         # FastAPI route handlers
+|   |   |-- schemas/         # Pydantic validation schemas
+|   |   |-- services/        # Business logic and database queries
+|   |   |-- config.py
+|   |   |-- database.py
+|   |   |-- main.py
+|   |   `-- seed.py          # Deterministic sample data script
+|   |-- .env.example
+|   |-- alembic.ini
+|   `-- requirements.txt
+|
+|-- frontend/
+|   |-- src/
+|   |   |-- components/      # Reusable UI elements (Layout, Pagination, Badges)
+|   |   |-- pages/           # Route views (Dashboard, Orders, Customers, etc.)
+|   |   |-- services/        # Typed API clients using native fetch
+|   |   |-- types/           # TypeScript interfaces matching backend schemas
+|   |   |-- utils/           # Currency and date formatters
+|   |   |-- App.tsx
+|   |   `-- index.css
+|   |-- .env.example
+|   `-- package.json
+|
+|-- docs/                    # Phase summaries and review notes
+|-- docker-compose.yml       # Local PostgreSQL 16 service
+|-- DECISIONS.md             # Engineering trade-offs and rationale
+|-- README.md
+`-- .gitignore
 ```
 
 ## Prerequisites
@@ -120,113 +78,102 @@ order-management-system/
 - **Node.js 18+ and npm**
 - **Docker Desktop** (for running PostgreSQL)
 
-## Environment Variables
+## Environment Setup
 
-The project includes template environment files that can be copied into place.
+Both backend and frontend include template `.env.example` files.
 
-### Backend (`backend/.env.example` -> `backend/.env`)
+### 1. Backend `.env`
+Create `backend/.env` (or copy from `backend/.env.example`):
 ```env
 DATABASE_URL=postgresql+psycopg2://app_user:app_password@localhost:5432/order_management
 ```
 
-### Frontend (`frontend/.env.example` -> `frontend/.env`)
+### 2. Frontend `.env`
+Create `frontend/.env` (or copy from `frontend/.env.example`):
 ```env
 VITE_API_BASE_URL=http://localhost:8000
 ```
 
-## Database Setup
+## Quickstart
 
-1. Start PostgreSQL container via Docker Compose:
+### Step 1: Start PostgreSQL
 ```powershell
 docker compose up -d postgres
 ```
 
-2. Run database migrations using Alembic:
-```powershell
-cd backend
-.\.venv\Scripts\activate
-alembic upgrade head
-```
-
-## Running Backend
-
+### Step 2: Run Migrations & Seed Data
 ```powershell
 cd backend
 
-# Create virtual environment (if not already created)
+# Create and activate virtual environment
 python -m venv .venv
-
-# Activate virtual environment
-# Windows:
 .\.venv\Scripts\activate
-# Linux/macOS:
-# source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the API server
-uvicorn app.main:app --reload
-```
+# Run migrations
+alembic upgrade head
 
-- Backend API: http://127.0.0.1:8000
-- Interactive Swagger Documentation: http://127.0.0.1:8000/docs
-- Health Endpoint: http://127.0.0.1:8000/health
-
-## Running Frontend
-
-```powershell
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start Vite development server
-npm run dev
-```
-
-- Frontend Application: http://localhost:5173
-
-## Seed Data
-
-To populate the database with deterministic sample records:
-```powershell
-cd backend
+# Seed deterministic test data (10 customers, 40 orders)
 python -m app.seed
 ```
 
-The seed script loads:
-- **10 Customers**: Including realistic commercial names and contact emails.
-- **40 Orders**: Spanning `pending`, `completed`, and `cancelled` statuses with deterministic timestamps and amounts.
+### Step 3: Start the Backend Server
+```powershell
+# From the backend/ directory with .venv active:
+uvicorn app.main:app --reload
+```
+- API runs at: http://127.0.0.1:8000
+- Swagger docs at: http://127.0.0.1:8000/docs
+- Health check: http://127.0.0.1:8000/health
 
-This seed data allows immediate testing of customer summaries, order status updates, sorting, and aggregate dashboard metrics.
+### Step 4: Start the Frontend
+Open a new terminal:
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+- App runs at: http://localhost:5173 (or http://localhost:5175 if 5173 is occupied)
 
-## API Overview
+## Sample Seed Data
 
-| Method | Endpoint | Purpose |
+Running `python -m app.seed` creates:
+- **10 Customers**: Standard accounts with unique email addresses.
+- **40 Orders**: Across `pending` (14), `completed` (18), and `cancelled` (8) statuses with fixed dates and amounts.
+
+This gives immediate data to test filtering, sorting, pagination, and metric calculations.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/orders` | List, search, filter, sort, and paginate orders |
-| `POST` | `/orders` | Create an order with validation |
-| `PATCH` | `/orders/{order_id}/status` | Update status of an existing order |
-| `GET` | `/customers` | Paginated customer summaries with aggregate metrics |
-| `GET` | `/customers/{customer_id}` | Customer profile details and metrics |
-| `GET` | `/customers/{customer_id}/orders` | Paginated order history for a specific customer |
-| `GET` | `/dashboard/summary` | Aggregate dashboard summary metrics |
-| `GET` | `/health` | API service liveness probe |
-| `GET` | `/health/database` | Database connectivity probe |
+| `GET` | `/orders` | List orders with search, status filter, sorting, and pagination |
+| `POST` | `/orders` | Create a new order (validates customer, amount, status) |
+| `PATCH` | `/orders/{id}/status` | Update an order's status |
+| `GET` | `/customers` | List customers with completed order counts and revenue |
+| `GET` | `/customers/{id}` | Get customer profile details and completed metrics |
+| `GET` | `/customers/{id}/orders` | Paginated order history for a single customer |
+| `GET` | `/dashboard/summary` | Aggregate metrics (total orders, completed revenue, customer count) |
+| `GET` | `/health` | API health check |
+| `GET` | `/health/database` | Database connection check |
 
 ## Assumptions
 
-- **Customer Email Uniqueness**: Customer emails are assumed to be unique identifiers for client organizations in this operational context.
-- **Monetary Precision**: Order amounts must be greater than zero and are stored using fixed-point `NUMERIC(12, 2)` to eliminate floating-point rounding errors.
-- **Allowed Statuses**: Orders strictly belong to one of three statuses: `pending`, `completed`, or `cancelled`.
-- **Completed Order Value**: Only orders with `completed` status contribute to completed order revenue. Pending and cancelled orders are excluded.
-- **Status Transitions**: The business requirements do not impose state machine restrictions on status changes; any valid status can be transitioned to another.
-- **Soft Deletion**: For this internal operations dashboard, order history is preserved for auditing; deletion endpoints were not specified.
+- **Customer Email**: Customer emails are unique identifiers across the system.
+- **Amount Precision**: Order amounts must be greater than zero and are stored as `NUMERIC(12, 2)` to avoid floating-point math issues.
+- **Status Values**: Orders are limited to three statuses: `pending`, `completed`, and `cancelled`.
+- **Completed Revenue**: Only orders with status `completed` count toward total completed order value. Pending and cancelled orders are excluded.
+- **Status Transitions**: The requirements did not specify state machine rules, so any status can be changed to any other valid status.
+- **Soft Deletion**: For audit purposes, orders are not deleted in this operations dashboard.
 
 ## Scale Considerations
 
-- **Server-Side Execution**: Orders use server-side filtering, sorting, and pagination so the browser never loads the complete order dataset into memory.
-- **Database Indexes**: Indexed columns (`orders.customer_id`, `orders.status`, `orders.created_at`, `customers.email`) support primary query access patterns.
-- **Deep Pagination**: For very large datasets (5M+ orders), cursor/keyset pagination can replace offset-based pagination to avoid linear row-skipping traversal costs.
-- **High-Volume Evolution**: If traffic expands, composite indexes, read replicas, aggregate caching with Redis, table partitioning by date range, and background job queues represent the natural architectural path.
+The Orders API uses server-side filtering, sorting, and pagination so the frontend does not need to load the complete order dataset. Payload sizes stay under 5 KB regardless of table size.
+
+If scaling to 5M+ orders:
+- **Cursor-based Pagination**: Offset pagination (`LIMIT/OFFSET`) scans discarded rows at high page numbers. Keyset/cursor pagination (`WHERE id < cursor`) would provide constant-time lookups for deep pages.
+- **Composite Indexes**: An index on `(status, created_at DESC)` would speed up queries filtering by status and ordering by date simultaneously.
+- **Customer Selection**: The dropdown on `/orders/new` would be replaced with a debounced server-side typeahead/autocomplete to handle 100k+ customer accounts.
+- **Caching**: Dashboard metrics could be cached in Redis with a 30-second TTL to avoid running `COUNT` and `SUM` queries across millions of rows on every refresh.
